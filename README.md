@@ -139,3 +139,20 @@ Then in another shell access Envoy over TLS:
 ## License
 
 All files in this repository are licensed with BSD license (see `COPYING`), unless they are explicitly licensed with some other license.  This does not apply to the git submodules.
+
+## Performance analysis
+
+Build a docker image for performance analysis:
+
+    $ docker image build -t envoy-perf-qat:devel -f Dockerfile.perf.envoy .
+
+Run Envoy (and run a suitable test loads against it):
+
+    $ docker run --rm -ti -p 9000:9000 --privileged -e OPENSSL_CONF=/etc/envoy/config/openssl.cnf -v $(pwd)/examples/openssl.cnf:/etc/envoy/config/openssl.cnf -v $(pwd)/cert.pem:/etc/envoy/tls/tls.crt -v $(pwd)/key.pem:/etc/envoy/tls/tls.key -v $(pwd)/examples/openssl-envoy-conf.yaml:/etc/envoy/config/envoy-conf.yaml -v /tmp:/tmp envoy-perf-qat:devel perf record -o /tmp/perf.data -g /envoy-static -c /etc/envoy/config/envoy-conf.yaml --cpuset-threads
+
+Analyze the resulting performance report in the same container image:
+
+    $ docker run --rm -ti --privileged -v /tmp:/tmp envoy-perf-qat:devel bash
+    root@e2946073e13b/ # cd /tmp/
+    root@e2946073e13b/tmp # perf report
+

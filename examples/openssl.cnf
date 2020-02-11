@@ -1,0 +1,8 @@
+openssl_conf = openssl_init
+[ openssl_init ]
+engines = engine_section
+[ engine_section ]
+qat = qat_section
+[ qat_section ]
+engine_id = qat
+default_algorithms = ALL

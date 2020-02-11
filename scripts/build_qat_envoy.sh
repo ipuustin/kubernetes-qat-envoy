@@ -197,8 +197,8 @@ build_envoy() {
 	pushd "${ENVOY_DIR}"
 	case $ID in
 		clear-linux*|debian|ubuntu)
-		    ~/.bazel/bin/bazel build -j "$(jobs)" //:envoy
-		    ;;
+			~/.bazel/bin/bazel build --extra_toolchains=@rules_python//python:autodetecting_toolchain_nonstrict --define perf_annotation=enabled -c opt -j "$(jobs)" //:envoy
+			;;
 	esac
 	popd
 }
@@ -208,16 +208,33 @@ main() {
 		die "Run this script as root or with sudo"
 	fi
 
-	setup
-
-	info "Build and install QAT library"
-	build_install_qat_library
-
-	info "Build and install QAT engine"
-	build_install_qat_engine
-
-	info "Build Envoy"
-	build_envoy
+	case $1 in
+		setup)
+			info "Set up the operating system"
+			setup
+			;;
+		lib)
+			info "Build and install QAT library"
+			build_install_qat_library
+			;;
+		engine)
+			info "Build and install QAT engine"
+			build_install_qat_engine
+			;;
+		envoy)
+			info "Build Envoy"
+			build_envoy
+			;;
+		all)
+			main setup
+			main lib
+			main engine
+			main envoy
+			;;
+		*)
+			main all
+			;;
+		esac
 }
 
-main
+main "$1"
