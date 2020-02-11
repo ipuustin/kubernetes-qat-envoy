@@ -105,6 +105,7 @@ build_install_qat_library() {
 	sed -i -e 's/cmn_ko$//' quickassist/Makefile
 	export ICP_ROOT="${QAT_LIB_DIR}" ICP_BUILD_OUTPUT="${QAT_LIB_DIR}/build" \
 		   ICP_ENV_DIR="${QAT_LIB_DIR}/quickassist/build_system/build_files/env_files" \
+		   ICP_DEFENSES_ENABLED="n" EXTRA_CFLAGS="-fno-omit-frame-pointer" \
 		   ICP_BUILDSYSTEM_PATH="${QAT_LIB_DIR}/quickassist/build_system" KERNEL_SOURCE_ROOT=/tmp
 
 	case $ID in
@@ -168,6 +169,7 @@ build_install_qat_engine() {
 	./configure --with-qat_dir="${QAT_LIB_DIR}" \
 				--with-openssl_dir="${OPENSSL_DIR}" \
 				--enable-upstream_driver \
+				--with-cc-opt=-fno-omit-frame-pointer \
 				--enable-qat_skip_err_files_build \
 				--enable-usdm --with-qat_install_dir=/usr/lib \
 				${distro_specific_opts}
