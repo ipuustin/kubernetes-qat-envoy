@@ -1,4 +1,4 @@
-FROM clearlinux:base as builder
+FROM clearlinux:base
 
 COPY scripts scripts
 COPY versions.yaml versions.yaml
@@ -12,25 +12,14 @@ RUN mv envoy-openssl.WORKSPACE envoy-openssl/WORKSPACE && \
 WORKDIR /root
 ENV HOME /root
 
-RUN bash -f /scripts/build_qat_envoy.sh lib
+RUN bash -f /scripts/build_qat_envoy.sh openssl
+RUN bash -f /scripts/build_qat_envoy.sh libqat
 RUN bash -f /scripts/build_qat_envoy.sh engine
 RUN bash -f /scripts/build_qat_envoy.sh envoy
 
-# Start creating the target image
-FROM clearlinux:base
-
-RUN swupd update && swupd bundle-add performance-tools linux-tools
-
-COPY --from=builder /usr/lib64/libstdc++.so.6 /usr/lib64
-COPY --from=builder /usr/lib/libqat_s.so /usr/lib
-COPY --from=builder /usr/lib/libusdm_drv_s.so /usr/lib
-COPY --from=builder /usr/lib64/lib/libqat.so /usr/lib
-COPY --from=builder /usr/bin/adf_ctl /usr/bin
-COPY --from=builder /usr/lib64/engines-1.1/qat.so /usr/lib64/engines-1.1
-COPY --from=builder /envoy-openssl/bazel-bin/envoy /envoy-static
-
 RUN ln -s /usr/lib/libqat.so /usr/lib/libqat.so.0 && \
     ln -s /usr/lib/libqat.so /usr/lib/libqat.so.0.0.0 && \
+    ln -s /envoy-openssl/bazel-bin/envoy /envoy-static && \
     install -d /etc/ld.so.conf.d && \
     install -d /etc/ssl && \
     echo /usr/lib > /etc/ld.so.conf.d/qat.conf && \

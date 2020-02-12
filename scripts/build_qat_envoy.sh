@@ -205,6 +205,35 @@ build_envoy() {
 	popd
 }
 
+build_install_openssl() {
+	info "Download and install OpenSSL."
+
+	local distro_specific_opts=""
+	local openssl_url
+	local openssl_version
+	local openssl_sha256
+	local openssl_tar
+
+	openssl_url="$(versions_yaml "libraries.openssl.url")"
+	openssl_version="$(versions_yaml "libraries.openssl.version")"
+	openssl_sha256="$(versions_yaml "libraries.openssl.sha256")"
+
+	openssl_tar="openssl.tgz"
+	curl -L "${openssl_url}"/openssl-"${openssl_version}".tar.gz -o "${openssl_tar}"
+	openssl_sha256_sum="$(sha256sum "${openssl_tar}" | cut -d' ' -f1)"
+	# check sha256
+	if [ "${openssl_sha256_sum}" != "${openssl_sha256}" ]; then
+		die "Mismatch for OpenSSL sha256. Expecting ${openssl_sha256}, got ${openssl_sha256_sum}"
+	fi
+	tar -xf "${openssl_tar}"
+	pushd openssl-"${openssl_version}"
+	./config -fno-omit-frame-pointer -fno-inline-functions --prefix=/usr/lib64 --openssldir=/usr/lib64
+	make -j "$(jobs)"
+	make install -j "$(jobs)"
+	ldconfig
+	popd
+}
+
 main() {
 	if [ "$(id -u)" != "0" ]; then
 		die "Run this script as root or with sudo"
@@ -215,7 +244,11 @@ main() {
 			info "Set up the operating system"
 			setup
 			;;
-		lib)
+		openssl)
+			info "Build and install OpenSSL"
+			build_install_openssl
+			;;
+		libqat)
 			info "Build and install QAT library"
 			build_install_qat_library
 			;;
@@ -229,7 +262,7 @@ main() {
 			;;
 		all)
 			main setup
-			main lib
+			main libqat
 			main engine
 			main envoy
 			;;
