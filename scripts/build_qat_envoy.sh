@@ -227,7 +227,7 @@ build_install_openssl() {
 	fi
 	tar -xf "${openssl_tar}"
 	pushd openssl-"${openssl_version}"
-	./config -fno-omit-frame-pointer -fno-inline-functions --prefix=/usr/lib64 --openssldir=/usr/lib64
+	./config -fno-omit-frame-pointer -fno-inline-functions --prefix=/usr --openssldir=/usr/lib64 --libdir=lib64 shared
 	make -j "$(jobs)"
 	make install -j "$(jobs)"
 	ldconfig
